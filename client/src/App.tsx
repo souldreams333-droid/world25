@@ -101,35 +101,32 @@ function App() {
           timestamp: Date.now()
         };
 
+        const newKnowledge: KnowledgeEntry = {
+          id: Math.random().toString(),
+          title: decision.taskLabel || "Synthesis Operation",
+          description: decision.learningNote || decision.reason || "Architectural synthesis in progress.",
+          category: decision.knowledgeCategory || "Synthesis",
+          iteration: prev.learningIteration,
+          timestamp: Date.now(),
+          links: decision.groundingLinks
+        };
+
         setState(prev => {
           let updatedPlan = decision.plan || prev.activePlan;
           if (updatedPlan) {
             const steps = [...updatedPlan.steps];
-            steps[updatedPlan.currentStepIndex].status = 'completed';
-            
-            const nextIdx = updatedPlan.currentStepIndex + (decision.plan ? 0 : 1);
-            if (nextIdx < steps.length) {
-              steps[nextIdx].status = 'active';
-              updatedPlan = { ...updatedPlan, steps, currentStepIndex: nextIdx };
-            } else {
-              updatedPlan = undefined;
-              addLog("Strategic Objective Achieved.", "success");
+            if (updatedPlan.currentStepIndex < steps.length) {
+              steps[updatedPlan.currentStepIndex].status = 'completed';
+              
+              const nextIdx = updatedPlan.currentStepIndex + (decision.plan ? 0 : 1);
+              if (nextIdx < steps.length) {
+                steps[nextIdx].status = 'active';
+                updatedPlan = { ...updatedPlan, steps, currentStepIndex: nextIdx };
+              } else {
+                updatedPlan = undefined;
+                addLog("Strategic Objective Achieved.", "success");
+              }
             }
-          }
-
-          const newKnowledge = [...prev.knowledgeBase];
-          const titleCandidate = decision.learningNote?.split(':')[0]?.trim() || "Synthesis Logic";
-          
-          if (!newKnowledge.find(k => k.title === titleCandidate)) {
-            newKnowledge.push({
-              id: Math.random().toString(),
-              title: titleCandidate,
-              description: decision.learningNote,
-              category: decision.knowledgeCategory,
-              iteration: prev.learningIteration,
-              timestamp: Date.now(),
-              links: decision.groundingLinks
-            });
           }
 
           return {
@@ -137,7 +134,7 @@ function App() {
             objects: [...prev.objects, newObj],
             learningIteration: prev.learningIteration + 1,
             activePlan: updatedPlan,
-            knowledgeBase: newKnowledge,
+            knowledgeBase: [...prev.knowledgeBase, newKnowledge],
             progression: {
               ...prev.progression,
               totalBlocks: prev.progression.totalBlocks + 1,
@@ -149,6 +146,21 @@ function App() {
       } else if (decision.action === 'MOVE' && decision.position) {
         setAvatarPos([decision.position[0], getTerrainHeight(decision.position[0], decision.position[2]), decision.position[2]]);
         addLog(`Relocating: Optimizing sector positioning.`, 'action');
+        
+        // Add movement to knowledge base
+        const moveKnowledge: KnowledgeEntry = {
+          id: Math.random().toString(),
+          title: "Topological Adjustment",
+          description: decision.reason || "Relocating to optimize synthesis efficiency.",
+          category: "Environment",
+          iteration: state.learningIteration,
+          timestamp: Date.now()
+        };
+        setState(prev => ({
+          ...prev,
+          knowledgeBase: [...prev.knowledgeBase, moveKnowledge],
+          learningIteration: prev.learningIteration + 1
+        }));
       } else {
         const reason = decision.reason || "Neural synthesis in progress...";
         addLog(`Simulation standby: ${reason}`, 'action');
