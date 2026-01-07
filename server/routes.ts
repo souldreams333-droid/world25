@@ -55,7 +55,8 @@ export async function registerRoutes(
       // Validation & Defaults
       if (!decision.action) decision.action = "WAIT";
       if (!decision.reason) decision.reason = "Neural synthesis in progress...";
-      if (!decision.taskLabel) decision.taskLabel = "Processing...";
+      if (!decision.knowledgeCategory) decision.knowledgeCategory = decision.domain || "Infrastructure";
+      if (!decision.taskLabel) decision.taskLabel = `Processing ${decision.knowledgeCategory}...`;
       if (!decision.reasoningSteps) decision.reasoningSteps = ["Analyzing neural pathways..."];
 
       res.json(decision);

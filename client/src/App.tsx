@@ -137,9 +137,9 @@ function App() {
             knowledgeBase: [...prev.knowledgeBase, newKnowledge],
             progression: {
               ...prev.progression,
-              totalBlocks: prev.progression.totalBlocks + 1,
-              complexityLevel: Math.floor((prev.progression.totalBlocks + 1) / 5) + 1,
-              structuresCompleted: prev.progression.structuresCompleted + (targetType === 'modular_unit' ? 1 : 0)
+              totalBlocks: (prev.progression.totalBlocks || 0) + 1,
+              complexityLevel: Math.floor(((prev.progression.totalBlocks || 0) + 1) / 5) + 1,
+              structuresCompleted: (prev.progression.structuresCompleted || 0) + (targetType === 'modular_unit' ? 1 : 0)
             }
           };
         });
@@ -159,7 +159,7 @@ function App() {
         setState(prev => ({
           ...prev,
           knowledgeBase: [...prev.knowledgeBase, moveKnowledge],
-          learningIteration: prev.learningIteration + 1
+          learningIteration: (prev.learningIteration || 0) + 1
         }));
       } else {
         const reason = decision.reason || "Neural synthesis in progress...";
