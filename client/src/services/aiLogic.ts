@@ -45,7 +45,7 @@ export async function decideNextAction(
     const res = await fetch("/api/simulation/decide", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, currentGoal })
+      body: JSON.stringify({ prompt, currentGoal, knowledgeBase: knowledgeBase.slice(-10) })
     });
 
     if (!res.ok) throw new Error("Simulation backend error");
