@@ -106,7 +106,7 @@ function App() {
           title: decision.taskLabel || "Synthesis Operation",
           description: decision.learningNote || decision.reason || "Architectural synthesis in progress.",
           category: decision.knowledgeCategory || "Synthesis",
-          iteration: prev.learningIteration,
+          iteration: state.learningIteration,
           timestamp: Date.now(),
           links: decision.groundingLinks
         };

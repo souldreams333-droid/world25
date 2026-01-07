@@ -30,7 +30,7 @@ const CATEGORY_COLORS: Record<KnowledgeCategory, string> = {
 export const KnowledgeGraph: React.FC<{ entries: KnowledgeEntry[], width?: number, height?: number }> = ({ entries, width = 350, height = 250 }) => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
-  const requestRef = useRef<number>(null);
+  const requestRef = useRef<number>(0);
 
   useEffect(() => {
     const newNodes: Node[] = entries.map((entry) => {
