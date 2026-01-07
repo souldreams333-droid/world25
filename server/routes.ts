@@ -26,6 +26,10 @@ export async function registerRoutes(
         NEURAL OBJECTIVE: Expand the "Neural Repository" by categorizing all synthesis data into: Infrastructure, Energy, Environment, Architecture, or Synthesis.
         LOGGING PROTOCOL: 3-5 short "reasoningSteps".
         PLANNING PROTOCOL: Generate a ConstructionPlan if none exists for goal: "${currentGoal}".
+        ACTION PROTOCOL: You MUST specify an "action" (PLACE, MOVE, or WAIT). 
+        - PLACE: If there is a pending step in the plan or if a new structure is needed.
+        - MOVE: To reposition the avatar.
+        - WAIT: Only if no immediate action is possible.
         Return strictly valid JSON.
       `;
 
@@ -43,7 +47,15 @@ export async function registerRoutes(
         throw new Error("Invalid response from Mistral");
       }
 
-      res.json(JSON.parse(content.trim()));
+      const decision = JSON.parse(content.trim());
+      
+      // Validation & Defaults to prevent "undefined" loop
+      if (!decision.action) decision.action = "WAIT";
+      if (!decision.reason) decision.reason = "Neural synthesis in progress...";
+      if (!decision.taskLabel) decision.taskLabel = "Processing...";
+      if (!decision.reasoningSteps) decision.reasoningSteps = ["Analyzing neural pathways..."];
+
+      res.json(decision);
     } catch (error: any) {
       console.error("Simulation Decision Error:", error);
       res.status(500).json({ error: error.message });

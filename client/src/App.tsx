@@ -150,7 +150,8 @@ function App() {
         setAvatarPos([decision.position[0], getTerrainHeight(decision.position[0], decision.position[2]), decision.position[2]]);
         addLog(`Relocating: Optimizing sector positioning.`, 'action');
       } else {
-        addLog(`Simulation standby: ${decision.reason}`, 'action');
+        const reason = decision.reason || "Neural synthesis in progress...";
+        addLog(`Simulation standby: ${reason}`, 'action');
       }
     } catch (e) {
       addLog("Critical neural desync. Link unstable.", "error");
