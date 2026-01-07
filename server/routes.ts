@@ -1,18 +1,13 @@
-
 import type { Express } from "express";
 import { type Server } from "http";
 import { storage } from "./storage";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerImageRoutes } from "./replit_integrations/image";
-import { GoogleGenAI, Type } from "@google/genai";
+import { Mistral } from "@mistralai/mistralai";
 
 // Initialize AI on server side
-const ai = new GoogleGenAI({
-  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
-  httpOptions: {
-    apiVersion: "",
-    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
-  },
+const mistral = new Mistral({
+  apiKey: process.env.MISTRAL_API_KEY,
 });
 
 export async function registerRoutes(
@@ -34,54 +29,21 @@ export async function registerRoutes(
         Return strictly valid JSON.
       `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview", // Updated to a supported model for AI Integrations
-        contents: prompt,
-        config: {
-          systemInstruction,
-          // thinkingConfig is removed if not supported by the flash model or causing issues, 
-          // but blueprint mentioned gemini-3-flash-preview supports hybrid reasoning.
-          // I will use gemini-3-flash-preview which is standard in Replit AI Integrations.
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              action: { type: Type.STRING, enum: ["PLACE", "MOVE", "WAIT"] },
-              objectType: { type: Type.STRING },
-              position: { type: Type.ARRAY, items: { type: Type.NUMBER } },
-              reason: { type: Type.STRING },
-              reasoningSteps: { type: Type.ARRAY, items: { type: Type.STRING } },
-              learningNote: { type: Type.STRING },
-              knowledgeCategory: { type: Type.STRING, enum: ["Infrastructure", "Energy", "Environment", "Architecture", "Synthesis"] },
-              taskLabel: { type: Type.STRING },
-              plan: {
-                type: Type.OBJECT,
-                properties: {
-                  objective: { type: Type.STRING },
-                  steps: {
-                    type: Type.ARRAY,
-                    items: {
-                      type: Type.OBJECT,
-                      properties: {
-                        label: { type: Type.STRING },
-                        type: { type: Type.STRING },
-                        position: { type: Type.ARRAY, items: { type: Type.NUMBER } },
-                        status: { type: Type.STRING, enum: ["pending", "active", "completed"] }
-                      },
-                      required: ["label", "type", "position", "status"]
-                    }
-                  },
-                  currentStepIndex: { type: Type.NUMBER },
-                  planId: { type: Type.STRING }
-                }
-              }
-            },
-            required: ["action", "reason", "reasoningSteps", "learningNote", "knowledgeCategory", "taskLabel"]
-          }
-        }
+      const response = await mistral.chat.complete({
+        model: "mistral-small-latest",
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user", content: JSON.stringify(prompt) }
+        ],
+        responseFormat: { type: "json_object" }
       });
 
-      res.json(JSON.parse(response.text.trim()));
+      const content = response.choices?.[0]?.message?.content;
+      if (!content || typeof content !== 'string') {
+        throw new Error("Invalid response from Mistral");
+      }
+
+      res.json(JSON.parse(content.trim()));
     } catch (error: any) {
       console.error("Simulation Decision Error:", error);
       res.status(500).json({ error: error.message });
