@@ -206,19 +206,22 @@ function App() {
 
       {/* PLANNING HUD */}
       {state.ui.showPlanning && state.activePlan && (
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-10 w-[450px] p-8 bg-black/60 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-2xl animate-in fade-in zoom-in-95 duration-500">
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-10 w-[450px] p-8 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-2xl animate-in fade-in zoom-in-95 duration-500">
           <div className="flex flex-col gap-1 mb-6">
-            <span className="text-[10px] font-black uppercase text-emerald-400 tracking-[0.4em]">Current Objective</span>
-            <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">{state.activePlan.objective || "Strategic Synthesis"}</h2>
+            <span className="text-[10px] font-black uppercase text-emerald-400 tracking-[0.4em]">Strategic Objective</span>
+            <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">{state.activePlan.objective || "Underworld Synthesis"}</h2>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
             {state.activePlan.steps.map((step, idx) => (
-              <div key={idx} className={`relative flex items-center justify-between p-4 rounded-2xl border transition-all duration-500 ${step.status === 'active' ? 'bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : step.status === 'completed' ? 'bg-white/5 border-white/10 opacity-40' : 'bg-transparent border-white/5 opacity-20'}`}>
+              <div key={idx} className={`relative flex items-center justify-between p-4 rounded-2xl border transition-all duration-500 ${step.status === 'active' ? 'bg-emerald-500/20 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : step.status === 'completed' ? 'bg-emerald-500/5 border-emerald-500/20 opacity-60' : 'bg-white/5 border-white/5 opacity-40'}`}>
                 <div className="flex items-center gap-4">
-                  <div className={`w-2 h-2 rounded-full ${step.status === 'active' ? 'bg-emerald-400 animate-pulse' : step.status === 'completed' ? 'bg-white' : 'bg-white/20'}`} />
-                  <span className="text-xs font-bold tracking-tight">{step.label}</span>
+                  <div className={`w-2 h-2 rounded-full ${step.status === 'active' ? 'bg-emerald-400 animate-pulse' : step.status === 'completed' ? 'bg-emerald-500' : 'bg-white/20'}`} />
+                  <span className={`text-xs font-bold tracking-tight ${step.status === 'completed' ? 'line-through text-white/40' : 'text-white'}`}>{step.label}</span>
                 </div>
-                <span className="text-[9px] font-mono text-white/30">[{step.type.toUpperCase()}]</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-[9px] font-mono text-white/30 uppercase tracking-widest">{step.type.replace('_', ' ')}</span>
+                  {step.status === 'completed' && <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />}
+                </div>
               </div>
             ))}
           </div>
