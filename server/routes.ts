@@ -1,6 +1,6 @@
 
 import type { Express } from "express";
-import { createServer, type Server } from "http";
+import { type Server } from "http";
 import { storage } from "./storage";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerImageRoutes } from "./replit_integrations/image";
@@ -35,11 +35,13 @@ export async function registerRoutes(
       `;
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash-exp",
+        model: "gemini-3-flash-preview", // Updated to a supported model for AI Integrations
         contents: prompt,
         config: {
           systemInstruction,
-          thinkingConfig: { thinkingBudget: 1024 },
+          // thinkingConfig is removed if not supported by the flash model or causing issues, 
+          // but blueprint mentioned gemini-3-flash-preview supports hybrid reasoning.
+          // I will use gemini-3-flash-preview which is standard in Replit AI Integrations.
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
