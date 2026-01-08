@@ -4,6 +4,7 @@ import SimulationCanvas from './components/SimulationCanvas';
 import { KnowledgeGraph } from './components/KnowledgeGraph';
 import { WorldObject, LogEntry, SimulationState, KnowledgeEntry, GroundingLink, ConstructionPlan, KnowledgeCategory } from './types';
 import { decideNextAction, AIActionResponse } from './services/aiLogic';
+import "./lib/firebase"; // Initialize Firebase
 
 const INITIAL_GOAL = "Synthesize Sustainable Modular Settlement";
 
