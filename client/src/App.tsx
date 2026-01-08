@@ -36,6 +36,46 @@ function App() {
   const [taskProgress, setTaskProgress] = useState(0);
   const logContainerRef = useRef<HTMLDivElement>(null);
 
+  // Load state from Replit DB on mount
+  useEffect(() => {
+    const loadState = async () => {
+      try {
+        const res = await fetch("/api/simulation/state");
+        if (res.ok) {
+          const savedState = await res.json();
+          if (savedState) {
+            setState(savedState);
+            if (savedState.objects.length > 0) {
+              setAvatarPos(savedState.objects[savedState.objects.length - 1].position);
+            }
+            addLog("Neural recovery complete. Resuming synthesis via Replit DB.", "success");
+          }
+        }
+      } catch (error) {
+        console.error("Error loading simulation state:", error);
+      }
+    };
+    loadState();
+  }, []);
+
+  // Save state to Replit DB whenever it changes
+  useEffect(() => {
+    const saveState = async () => {
+      try {
+        const { ui, ...persistentState } = state;
+        await fetch("/api/simulation/state", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(persistentState)
+        });
+      } catch (error) {
+        console.error("Error saving simulation state:", error);
+      }
+    };
+    if (state.objects.length > 0 || state.learningIteration > 0) {
+      saveState();
+    }
+  }, [state.objects.length, state.learningIteration, state.currentGoal, state.activePlan]);
   const addLog = useCallback((message: string, type: LogEntry['type'] = 'action') => {
     setState(prev => ({
       ...prev,

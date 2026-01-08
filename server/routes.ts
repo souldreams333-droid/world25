@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerImageRoutes } from "./replit_integrations/image";
 import { Mistral } from "@mistralai/mistralai";
+import Database from "@replit/database";
+const db = new Database();
 
 // Initialize AI on server side
 const mistral = new Mistral({
@@ -14,6 +16,24 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  app.get("/api/simulation/state", async (_req, res) => {
+    try {
+      const state = await db.get("simulation_state");
+      res.json(state || null);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to load state" });
+    }
+  });
+
+  app.post("/api/simulation/state", async (req, res) => {
+    try {
+      await db.set("simulation_state", req.body);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to save state" });
+    }
+  });
+
   registerChatRoutes(app);
   registerImageRoutes(app);
 
