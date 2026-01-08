@@ -43,7 +43,7 @@ function App() {
         const res = await fetch("/api/simulation/state");
         if (res.ok) {
           const savedState = await res.json();
-          if (savedState) {
+          if (savedState && savedState.objects) {
             setState(savedState);
             if (savedState.objects.length > 0) {
               setAvatarPos(savedState.objects[savedState.objects.length - 1].position);
