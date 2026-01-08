@@ -4,8 +4,6 @@ import SimulationCanvas from './components/SimulationCanvas';
 import { KnowledgeGraph } from './components/KnowledgeGraph';
 import { WorldObject, LogEntry, SimulationState, KnowledgeEntry, GroundingLink, ConstructionPlan, KnowledgeCategory } from './types';
 import { decideNextAction, AIActionResponse } from './services/aiLogic';
-import { db } from "./lib/firebase"; // Initialize Firebase
-import { collection, addDoc, serverTimestamp, setDoc, doc, getDoc } from "firebase/firestore";
 
 const INITIAL_GOAL = "Synthesize Sustainable Modular Settlement";
 
@@ -37,47 +35,6 @@ function App() {
   const [currentTask, setCurrentTask] = useState<string>("Analyzing Local Sector...");
   const [taskProgress, setTaskProgress] = useState(0);
   const logContainerRef = useRef<HTMLDivElement>(null);
-
-  // Load state from Firebase on mount
-  useEffect(() => {
-    const loadState = async () => {
-      try {
-        const docRef = doc(db, "simulation_state", "current_world");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const savedState = docSnap.data() as SimulationState;
-          setState(savedState);
-          // If objects exist, set avatar to last object position
-          if (savedState.objects.length > 0) {
-            setAvatarPos(savedState.objects[savedState.objects.length - 1].position);
-          }
-          addLog("Neural recovery complete. Resuming synthesis.", "success");
-        }
-      } catch (error) {
-        console.error("Error loading simulation state:", error);
-      }
-    };
-    loadState();
-  }, []);
-
-  // Save state to Firebase whenever it changes
-  useEffect(() => {
-    const saveState = async () => {
-      try {
-        // Exclude UI state from persistence to keep session settings fresh
-        const { ui, ...persistentState } = state;
-        await setDoc(doc(db, "simulation_state", "current_world"), {
-          ...persistentState,
-          lastUpdated: serverTimestamp()
-        });
-      } catch (error) {
-        console.error("Error saving simulation state:", error);
-      }
-    };
-    if (state.objects.length > 0 || state.learningIteration > 0) {
-      saveState();
-    }
-  }, [state.objects.length, state.learningIteration, state.currentGoal, state.activePlan]);
 
   const addLog = useCallback((message: string, type: LogEntry['type'] = 'action') => {
     setState(prev => ({
@@ -153,16 +110,6 @@ function App() {
           timestamp: Date.now(),
           links: decision.groundingLinks
         };
-
-        // Persistent save to Firebase Firestore
-        try {
-          addDoc(collection(db, "neural_memory"), {
-            ...newKnowledge,
-            serverTimestamp: serverTimestamp()
-          });
-        } catch (error) {
-          console.error("Error saving neural memory to Firestore:", error);
-        }
 
         setState(prev => {
           let updatedPlan = decision.plan || prev.activePlan;
