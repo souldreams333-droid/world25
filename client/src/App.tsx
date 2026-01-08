@@ -4,7 +4,8 @@ import SimulationCanvas from './components/SimulationCanvas';
 import { KnowledgeGraph } from './components/KnowledgeGraph';
 import { WorldObject, LogEntry, SimulationState, KnowledgeEntry, GroundingLink, ConstructionPlan, KnowledgeCategory } from './types';
 import { decideNextAction, AIActionResponse } from './services/aiLogic';
-import "./lib/firebase"; // Initialize Firebase
+import { db } from "./lib/firebase"; // Initialize Firebase
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const INITIAL_GOAL = "Synthesize Sustainable Modular Settlement";
 
@@ -111,6 +112,16 @@ function App() {
           timestamp: Date.now(),
           links: decision.groundingLinks
         };
+
+        // Persistent save to Firebase Firestore
+        try {
+          addDoc(collection(db, "neural_memory"), {
+            ...newKnowledge,
+            serverTimestamp: serverTimestamp()
+          });
+        } catch (error) {
+          console.error("Error saving neural memory to Firestore:", error);
+        }
 
         setState(prev => {
           let updatedPlan = decision.plan || prev.activePlan;
