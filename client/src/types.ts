@@ -70,5 +70,6 @@ export interface SimulationState {
     showKnowledge: boolean;
     showLogs: boolean;
     showPlanning: boolean;
+    showAPIs: boolean;
   };
 }

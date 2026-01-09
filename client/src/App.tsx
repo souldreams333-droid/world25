@@ -26,10 +26,15 @@ function App() {
       totalBlocks: 0,
       unlockedBlueprints: ['Core Protocol', 'Adaptive Clustering']
     },
-    ui: { showStats: true, showKnowledge: true, showLogs: true, showPlanning: true }
+    ui: { showStats: true, showKnowledge: true, showLogs: true, showPlanning: true, showAPIs: false }
   });
 
   const [avatarPos, setAvatarPos] = useState<[number, number, number]>([0, 0, 0]);
+  const [apiStats, setApiStats] = useState<Record<string, { calls: number; lastStatus: string; latency: number }>>({
+    "Mistral AI": { calls: 0, lastStatus: "Idle", latency: 0 },
+    "Hugging Face": { calls: 0, lastStatus: "Idle", latency: 0 },
+    "Replit DB": { calls: 0, lastStatus: "Idle", latency: 0 }
+  });
   const [isProcessing, setIsProcessing] = useState(false);
   const [isAuto, setIsAuto] = useState(true);
   const [currentTask, setCurrentTask] = useState<string>("Analyzing Local Sector...");
@@ -39,8 +44,13 @@ function App() {
   // Load state from Replit DB on mount
   useEffect(() => {
     const loadState = async () => {
+      const start = Date.now();
       try {
         const res = await fetch("/api/simulation/state");
+        setApiStats(prev => ({
+          ...prev,
+          "Replit DB": { calls: prev["Replit DB"].calls + 1, lastStatus: res.ok ? "Success" : "Error", latency: Date.now() - start }
+        }));
         if (res.ok) {
           const savedState = await res.json();
           if (savedState && savedState.objects) {
@@ -61,13 +71,18 @@ function App() {
   // Save state to Replit DB whenever it changes
   useEffect(() => {
     const saveState = async () => {
+      const start = Date.now();
       try {
         const { ui, ...persistentState } = state;
-        await fetch("/api/simulation/state", {
+        const res = await fetch("/api/simulation/state", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(persistentState)
         });
+        setApiStats(prev => ({
+          ...prev,
+          "Replit DB": { calls: prev["Replit DB"].calls + 1, lastStatus: res.ok ? "Success" : "Error", latency: Date.now() - start }
+        }));
       } catch (error) {
         console.error("Error saving simulation state:", error);
       }
@@ -97,6 +112,7 @@ function App() {
     setTaskProgress(20);
 
     try {
+      const startMistral = Date.now();
       const decision: AIActionResponse = await decideNextAction(
         state.logs, 
         state.objects, 
@@ -105,6 +121,10 @@ function App() {
         getTerrainHeight,
         state.activePlan
       );
+      setApiStats(prev => ({
+        ...prev,
+        "Mistral AI": { calls: prev["Mistral AI"].calls + 1, lastStatus: "Success", latency: Date.now() - startMistral }
+      }));
       
       setTaskProgress(40);
       
@@ -231,7 +251,7 @@ function App() {
       {/* HUD CONTROLS */}
       <div className="absolute top-8 right-8 z-20 flex flex-col gap-3 items-end">
         <div className="flex bg-black/40 backdrop-blur-xl p-1.5 rounded-2xl border border-white/5 shadow-2xl">
-          {['Stats', 'Knowledge', 'Planning', 'Logs'].map((k) => (
+          {['Stats', 'Knowledge', 'Planning', 'Logs', 'APIs'].map((k) => (
             <button key={k} onClick={() => setState(p => ({ ...p, ui: { ...p.ui, [`show${k}`]: !p.ui[`show${k}` as keyof SimulationState['ui']] } }))}
               className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${state.ui[`show${k}` as keyof SimulationState['ui']] ? 'bg-white text-slate-950 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'text-white/40 hover:text-white'}`}>
               {k === 'Knowledge' ? 'Neural' : k}
@@ -315,6 +335,30 @@ function App() {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      )}
+
+      {/* API MONITOR PANEL */}
+      {state.ui.showAPIs && (
+        <div className="absolute bottom-8 right-[450px] z-10 w-80 p-8 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[35px] shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-2 h-2 bg-sky-400 rounded-full animate-pulse" />
+            <span className="text-[10px] font-black uppercase text-white tracking-[0.3em]">System Uplink Monitor</span>
+          </div>
+          <div className="space-y-4">
+            {Object.entries(apiStats).map(([name, stats]) => (
+              <div key={name} className="p-4 bg-white/5 rounded-2xl border border-white/5 flex justify-between items-center">
+                <div>
+                  <div className="text-[9px] font-black text-white/40 uppercase mb-1 tracking-widest">{name}</div>
+                  <div className="text-xs font-bold text-white">{stats.lastStatus}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-mono font-bold text-sky-400">{stats.latency}ms</div>
+                  <div className="text-[8px] font-black text-white/20 uppercase tracking-tighter">Calls: {stats.calls}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
