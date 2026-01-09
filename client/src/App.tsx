@@ -341,6 +341,14 @@ function App() {
 
       {/* FOOTER */}
       <div className="absolute bottom-8 right-8 z-10 flex gap-4">
+        <button 
+          onClick={() => window.location.href = "/api/download-app"}
+          className="px-6 h-16 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-[20px] font-black uppercase italic tracking-tighter transition-all shadow-2xl active:scale-95 flex items-center gap-3"
+          title="Download Full Project"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          <span className="hidden sm:inline">Export</span>
+        </button>
         <div className="bg-black/60 backdrop-blur-2xl p-2 rounded-2xl border border-white/10 flex">
           <button onClick={() => setIsAuto(true)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isAuto ? 'bg-sky-500 text-white shadow-xl shadow-sky-500/20' : 'text-white/30'}`}>Auto-Pilot</button>
           <button onClick={() => setIsAuto(false)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isAuto ? 'bg-white text-slate-950 shadow-xl shadow-white/10' : 'text-white/30'}`}>Manual</button>

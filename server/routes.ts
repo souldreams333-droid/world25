@@ -34,6 +34,21 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/download-app", async (_req, res) => {
+    try {
+      const path = require("path");
+      const fs = require("fs");
+      const filePath = path.join(process.cwd(), "app_code.zip");
+      if (fs.existsSync(filePath)) {
+        res.download(filePath, "underworld-simulation.zip");
+      } else {
+        res.status(404).json({ message: "Archive not found. Please try again in a moment." });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to provide download" });
+    }
+  });
+
   registerChatRoutes(app);
   registerImageRoutes(app);
 
