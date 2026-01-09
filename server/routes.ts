@@ -25,6 +25,31 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/simulation/visual-analysis", async (req, res) => {
+    try {
+      const { imageUrl, prompt } = req.body;
+      const API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large";
+      
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: imageUrl,
+          parameters: { prompt }
+        })
+      });
+
+      const result = await response.json();
+      res.json(result);
+    } catch (error: any) {
+      console.error("HF Visual Analysis Error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/simulation/state", async (req, res) => {
     try {
       await db.set("simulation_state", req.body);
